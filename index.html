@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. WELLDA | 단백질 섭취량 계산기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --bg: #F7F7F4;
+    --card: #FFFFFF;
+    --border: #EAEAE5;
+    --text-1: #1C1C1E;
+    --text-2: #8A8A8E;
+    --text-3: #B4B4B0;
+    --sage: #6E8F72;
+    --sage-deep: #56745A;
+    --sage-light: #EDF3ED;
+    --sage-light-border: #D9E6DA;
+    --warn: #B4664F;
+    --warn-light: #F7EBE8;
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --shadow: 0 1px 2px rgba(28,28,30,0.03), 0 8px 24px rgba(28,28,30,0.04);
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    background: var(--bg);
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+    color: var(--text-1);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app{
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  .app-header{
+    text-align:center;
+    margin-bottom: 40px;
+  }
+  .app-header .brand{
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--sage-deep);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .app-header h1{
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .app-header p{
+    font-size: 15px;
+    color: var(--text-2);
+    margin: 0;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 20px;
+    align-items:start;
+  }
+
+  .col-result{
+    position: sticky;
+    top: 24px;
+    display:flex;
+    flex-direction:column;
+    gap: 16px;
+  }
+
+  .col-input{
+    display:flex;
+    flex-direction:column;
+    gap: 16px;
+  }
+
+  .card{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 26px 26px 28px;
+    box-shadow: var(--shadow);
+  }
+
+  .card h2{
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  .card h3{
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 10px;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---------- Row of 3 inputs ---------- */
+  .row-3{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap: 8px;
+  }
+  .field label{
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+  }
+  .field input[type="number"], .field input[type="text"]{
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: #FBFBFA;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text-1);
+    outline: none;
+    transition: border-color .15s ease, background .15s ease;
+    -moz-appearance: textfield;
+  }
+  .field input[type="number"]::-webkit-outer-spin-button,
+  .field input[type="number"]::-webkit-inner-spin-button{
+    -webkit-appearance: none; margin:0;
+  }
+  .field input:focus{
+    border-color: var(--sage);
+    background: #FFFFFF;
+  }
+
+  /* ---------- Goal pills ---------- */
+  .goal-options{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .pill{
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: #FBFBFA;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-2);
+    text-align:center;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .pill:hover{ border-color: var(--sage); }
+  .pill.active{
+    background: var(--sage);
+    border-color: var(--sage);
+    color: #fff;
+  }
+
+  /* ---------- FFM section ---------- */
+  .q-text{
+    font-size: 14px;
+    color: var(--text-1);
+    margin: 0 0 14px;
+  }
+  .radio-group{
+    display:flex;
+    gap: 22px;
+    margin-bottom: 4px;
+  }
+  .radio-group label{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-1);
+    cursor:pointer;
+  }
+  .radio-group input[type="radio"]{
+    appearance:none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display:grid;
+    place-content:center;
+    cursor:pointer;
+    transition: border-color .15s ease;
+  }
+  .radio-group input[type="radio"]::before{
+    content:"";
+    width: 9px; height:9px;
+    border-radius:50%;
+    background: var(--sage);
+    transform: scale(0);
+    transition: transform .12s ease;
+  }
+  .radio-group input[type="radio"]:checked{
+    border-color: var(--sage);
+  }
+  .radio-group input[type="radio"]:checked::before{
+    transform: scale(1);
+  }
+
+  .ffm-expand{
+    display:grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows .32s ease, opacity .28s ease, margin-top .32s ease;
+    margin-top: 0;
+  }
+  .ffm-expand.open{
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: 18px;
+  }
+  .ffm-expand > div{ overflow:hidden; }
+  .ffm-expand .field{ margin-bottom: 12px; }
+
+  .info-box{
+    background: var(--sage-light);
+    border: 1px solid var(--sage-light-border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--sage-deep);
+  }
+
+  /* ---------- Kidney toggle ---------- */
+  .toggle-group{
+    display:flex;
+    gap: 10px;
+  }
+  .toggle-btn{
+    flex:1;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: #FBFBFA;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-2);
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .toggle-btn:hover{ border-color: var(--sage); }
+  .toggle-btn.active{
+    background: var(--text-1);
+    border-color: var(--text-1);
+    color: #fff;
+  }
+  .toggle-btn.active.warn{
+    background: var(--warn);
+    border-color: var(--warn);
+  }
+
+  /* ---------- Calculate button ---------- */
+  .calc-btn{
+    width:100%;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--sage-deep);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor:pointer;
+    letter-spacing: -0.01em;
+    box-shadow: 0 8px 20px rgba(86,116,90,0.25);
+    transition: transform .1s ease, box-shadow .15s ease;
+  }
+  .calc-btn:hover{ box-shadow: 0 10px 24px rgba(86,116,90,0.32); }
+  .calc-btn:active{ transform: scale(0.99); }
+
+  .error-text{
+    font-size: 12.5px;
+    color: var(--warn);
+    text-align:center;
+    margin-top: -6px;
+    min-height: 16px;
+  }
+
+  /* ---------- Result cards ---------- */
+  .result-card{
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAF8 100%);
+    text-align:center;
+    padding: 32px 26px 30px;
+  }
+  .result-card h2{
+    text-align:center;
+    color: var(--text-2);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .result-value{
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--sage-deep);
+    letter-spacing: -0.02em;
+    margin: 6px 0 10px;
+  }
+  .result-value .unit{
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-2);
+    margin-left: 4px;
+  }
+  .result-sub{
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+
+  .basis-card p, .tip-card p{
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-1);
+    margin: 0;
+  }
+  .tip-card{
+    border-color: var(--sage-light-border);
+    background: var(--sage-light);
+  }
+  .tip-card h3{ color: var(--sage-deep); }
+  .tip-card p{ color: var(--sage-deep); }
+
+  @media (max-width: 860px){
+    .grid{ grid-template-columns: 1fr; }
+    .col-result{ position: static; order: 2; }
+    .col-input{ order: 1; }
+    .row-3{ grid-template-columns: 1fr 1fr; }
+    .row-3 .field:nth-child(3){ grid-column: span 2; }
+  }
+  @media (max-width: 420px){
+    .row-3{ grid-template-columns: 1fr; }
+    .row-3 .field:nth-child(3){ grid-column: span 1; }
+    .goal-options{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="app-header">
+    <div class="brand">Dr. WELLDA</div>
+    <h1>단백질 섭취량 계산기</h1>
+    <p>키, 몸무게, 목표에 맞는 하루 단백질 권장 섭취량을 확인하세요</p>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: INPUTS -->
+    <div class="col-input">
+
+      <section class="card">
+        <h2>기본 정보</h2>
+        <div class="row-3">
+          <div class="field">
+            <label for="height">키 (cm)</label>
+            <input type="number" id="height" placeholder="예) 170">
+          </div>
+          <div class="field">
+            <label for="weight">몸무게 (kg)</label>
+            <input type="number" id="weight" placeholder="예) 65">
+          </div>
+          <div class="field">
+            <label for="age">나이</label>
+            <input type="number" id="age" placeholder="예) 35">
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>목표</h2>
+        <div class="goal-options" id="goalOptions">
+          <div class="pill" data-goal="loss">체중 감량</div>
+          <div class="pill active" data-goal="maintain">체중 유지</div>
+          <div class="pill" data-goal="gain">근육 증가</div>
+          <div class="pill" data-goal="recovery">재활 · 회복</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>인바디 제지방량(FFM)</h2>
+        <p class="q-text">인바디 결과에서 제지방량을 알고 계신가요?</p>
+        <div class="radio-group">
+          <label><input type="radio" name="ffmKnown" value="no" checked> 아니오</label>
+          <label><input type="radio" name="ffmKnown" value="yes"> 예</label>
+        </div>
+
+        <div class="ffm-expand" id="ffmExpand">
+          <div>
+            <div class="field">
+              <label for="ffm">제지방량 (kg)</label>
+              <input type="number" id="ffm" placeholder="예) 48.5">
+            </div>
+            <div class="info-box">
+              인바디 결과지의 '제지방량(kg)' 값을 입력하세요.<br>
+              모르시면 '아니오'를 선택하세요.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>신장 질환 여부</h2>
+        <div class="toggle-group" id="kidneyGroup">
+          <button type="button" class="toggle-btn active" data-kidney="no">아니오</button>
+          <button type="button" class="toggle-btn" data-kidney="yes">예</button>
+        </div>
+      </section>
+
+      <button class="calc-btn" id="calcBtn">계산하기</button>
+      <div class="error-text" id="errorText"></div>
+    </div>
+
+    <!-- RIGHT: RESULTS -->
+    <div class="col-result">
+      <section class="card result-card">
+        <h2>일일 단백질 권장량</h2>
+        <div class="result-value" id="resultValue">-- <span class="unit">g / 일</span></div>
+        <div class="result-sub" id="resultSub">기본 정보를 입력하고 계산하기를 눌러주세요</div>
+      </section>
+
+      <section class="card basis-card">
+        <h3>계산 기준</h3>
+        <p id="basisText">계산 후 표시됩니다.</p>
+      </section>
+
+      <section class="card tip-card">
+        <h3>🩺 Doctor Tip</h3>
+        <p id="tipText">[맞춤 코멘트 영역 — 계산 결과에 따라 추후 업데이트됩니다]</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Goal pills ----------
+  let selectedGoal = "maintain";
+  const goalOptions = document.getElementById("goalOptions");
+  goalOptions.addEventListener("click", (e) => {
+    const pill = e.target.closest(".pill");
+    if(!pill) return;
+    goalOptions.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+    pill.classList.add("active");
+    selectedGoal = pill.dataset.goal;
+  });
+
+  // ---------- FFM expand ----------
+  const ffmExpand = document.getElementById("ffmExpand");
+  document.querySelectorAll('input[name="ffmKnown"]').forEach(radio => {
+    radio.addEventListener("change", (e) => {
+      if(e.target.value === "yes"){
+        ffmExpand.classList.add("open");
+      } else {
+        ffmExpand.classList.remove("open");
+      }
+    });
+  });
+
+  // ---------- Kidney toggle ----------
+  let kidneyDisease = "no";
+  const kidneyGroup = document.getElementById("kidneyGroup");
+  kidneyGroup.addEventListener("click", (e) => {
+    const btn = e.target.closest(".toggle-btn");
+    if(!btn) return;
+    kidneyGroup.querySelectorAll(".toggle-btn").forEach(b => {
+      b.classList.remove("active", "warn");
+    });
+    btn.classList.add("active");
+    kidneyDisease = btn.dataset.kidney;
+    if(kidneyDisease === "yes"){ btn.classList.add("warn"); }
+  });
+
+  // ---------- Goal -> protein factor range (g / kg) ----------
+  const GOAL_FACTORS = {
+    loss:      { min: 1.2, max: 1.6, label: "체중 감량" },
+    maintain:  { min: 1.0, max: 1.2, label: "체중 유지" },
+    gain:      { min: 1.6, max: 2.2, label: "근육 증가" },
+    recovery:  { min: 1.2, max: 1.5, label: "재활 · 회복" }
+  };
+
+  const KIDNEY_FACTOR = { min: 0.6, max: 0.8 };
+
+  // ---------- Doctor Tip copy (fragment-based, combines multiple factors) ----------
+  const GOAL_TIPS = {
+    loss: {
+      intro: "체중 감량 중에는 근손실을 막는 것이 가장 중요해요.",
+      food: "닭가슴살, 두부, 흰살생선처럼 지방이 적은 단백질 위주로 구성하고, 하루 권장량을 3끼에 걸쳐 고르게 나눠보세요."
+    },
+    maintain: {
+      intro: "현재 체중을 유지하는 단계라면 단백질을 한 끼에 몰아 먹기보다 꾸준히 나눠 먹는 게 핵심이에요.",
+      food: "매 끼니 20~30g 정도씩, 달걀·콩류·살코기 등으로 균형 있게 채워보세요."
+    },
+    gain: {
+      intro: "근육 증가가 목표라면 운동 자극과 회복(단백질)의 타이밍이 중요해요.",
+      food: "운동 후 30~60분 이내에 유청 단백질, 달걀, 그릭요거트를 섭취하면 근합성에 더 효과적이에요."
+    },
+    recovery: {
+      intro: "회복기에는 단백질 섭취뿐 아니라 충분한 휴식과 수분 섭취도 함께 신경 써야 해요.",
+      food: "소화 부담이 적은 연두부, 계란찜, 흰살생선부터 천천히 양을 늘려가 보세요."
+    }
+  };
+
+  const BMI_TIPS = {
+    under: "현재 저체중 범위에 해당하니, 단백질뿐 아니라 하루 전체 열량 섭취가 충분한지도 함께 살펴보시는 게 좋아요.",
+    normal: "현재 체중은 정상 범위예요. 지금의 식습관 패턴을 유지하면서 단백질 섭취만 조금 더 신경 써보세요.",
+    over: "현재 과체중 범위이니 단백질 섭취와 함께 걷기 등 활동량을 조금씩 늘려보시는 것도 도움이 될 수 있어요.",
+    obese: "현재 비만 범위(BMI 30 이상)에 해당해 조정체중을 기준으로 계산해드렸어요. 급격한 감량보다는 점진적인 변화를 목표로 삼아보세요."
+  };
+
+  function bmiCategory(bmi){
+    if(bmi < 18.5) return "under";
+    if(bmi < 23) return "normal";
+    if(bmi < 25) return "over";
+    return "obese";
+  }
+
+  const AGE_YOUNG_TIP = "활동량이 많은 시기인 만큼 단백질을 끼니마다 놓치지 않는 게 도움이 됩니다.";
+  const AGE_SENIOR_TIP = "65세 이상이신 경우 근감소증 예방을 위해 끼니마다 단백질을 놓치지 않는 것이 특히 중요해요.";
+
+  const FFM_TIP = "인바디 제지방량(FFM) 수치를 반영해 계산했기 때문에, 체중만으로 계산한 값보다 더 정밀한 목표치예요.";
+
+  const KIDNEY_TIP = "신장 질환이 있으신 경우 단백질 섭취량은 반드시 신장내과 전문의 또는 영양사와 상담 후 조정하셔야 해요. 위 수치는 참고용 정보이며, 실제 필요량은 신장 기능과 투석 여부에 따라 크게 달라질 수 있습니다.";
+
+  function buildDoctorTip({ goal, bmi, age, ffmKnown, kidneyDisease }){
+    const g = GOAL_TIPS[goal];
+    const parts = [g.intro, g.food, BMI_TIPS[bmiCategory(bmi)]];
+
+    if(kidneyDisease === "yes"){
+      // Kidney guidance takes priority over age/FFM commentary to keep the message focused
+      parts.push(KIDNEY_TIP);
+    } else {
+      if(age >= 65){ parts.push(AGE_SENIOR_TIP); }
+      else if(age < 35){ parts.push(AGE_YOUNG_TIP); }
+      if(ffmKnown === "yes"){ parts.push(FFM_TIP); }
+    }
+
+    return parts.join(" ");
+  }
+
+  const errorText = document.getElementById("errorText");
+  const resultValue = document.getElementById("resultValue");
+  const resultSub = document.getElementById("resultSub");
+  const basisText = document.getElementById("basisText");
+  const tipText = document.getElementById("tipText");
+
+  document.getElementById("calcBtn").addEventListener("click", () => {
+    const height = parseFloat(document.getElementById("height").value);
+    const weight = parseFloat(document.getElementById("weight").value);
+    const age = parseFloat(document.getElementById("age").value);
+    const ffmKnown = document.querySelector('input[name="ffmKnown"]:checked').value;
+    const ffm = parseFloat(document.getElementById("ffm").value);
+
+    if(!height || !weight || !age || height <= 0 || weight <= 0 || age <= 0){
+      errorText.textContent = "키, 몸무게, 나이를 정확히 입력해주세요.";
+      return;
+    }
+    if(ffmKnown === "yes" && (!ffm || ffm <= 0)){
+      errorText.textContent = "제지방량(kg)을 입력하거나 '아니오'를 선택해주세요.";
+      return;
+    }
+    errorText.textContent = "";
+
+    const heightM = height / 100;
+    const bmi = weight / (heightM * heightM);
+
+    // ---- Determine calculation basis ----
+    let baseWeight;
+    let basisMessage;
+
+    if(ffmKnown === "yes" && ffm > 0){
+      baseWeight = ffm;
+      basisMessage = "입력한 제지방량(FFM)을 기준으로 계산했습니다.";
+    } else if(bmi >= 30){
+      const idealWeight = 22 * heightM * heightM; // BMI 22 reference
+      baseWeight = idealWeight + 0.4 * (weight - idealWeight);
+      basisMessage = "BMI가 30 이상이므로 조정체중 기준으로 계산했습니다.";
+    } else {
+      baseWeight = weight;
+      basisMessage = "실제 체중 기준으로 계산했습니다.";
+    }
+
+    // ---- Determine factor range ----
+    let factor = kidneyDisease === "yes" ? KIDNEY_FACTOR : GOAL_FACTORS[selectedGoal];
+
+    // mild upward adjustment for older adults (sarcopenia prevention), skipped if kidney disease
+    let ageNote = "";
+    if(age >= 65 && kidneyDisease !== "yes"){
+      factor = { min: Math.max(factor.min, 1.0), max: Math.max(factor.max, 1.2) };
+      ageNote = " 고령 기준이 반영되었습니다.";
+    }
+
+    const low = (baseWeight * factor.min).toFixed(0);
+    const high = (baseWeight * factor.max).toFixed(0);
+
+    resultValue.innerHTML = `${low}–${high} <span class="unit">g / 일</span>`;
+    resultSub.textContent =
+      `기준 체중 ${baseWeight.toFixed(1)}kg × ${factor.min}–${factor.max}g/kg` + ageNote;
+
+    basisText.textContent = basisMessage;
+
+    // ---- Doctor Tip: combine goal + BMI + age + FFM/kidney fragments ----
+    tipText.textContent = buildDoctorTip({
+      goal: selectedGoal,
+      bmi: bmi,
+      age: age,
+      ffmKnown: ffmKnown,
+      kidneyDisease: kidneyDisease
+    });
+  });
+</script>
+
+</body>
+</html>
